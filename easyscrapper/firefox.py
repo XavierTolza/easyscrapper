@@ -1,15 +1,20 @@
+import os
 import re
-from os import system
+import tarfile
+from os import system, remove
+from os.path import join, isfile, abspath
+from tempfile import gettempdir
 
 import numpy as np
+from easylogger import LoggingClass
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.firefox.options import Options
 from user_agent import generate_user_agent
 
-from easylogger import LoggingClass
-from .common import timeout_settings
+from .common import timeout_settings, gecko_driver_url
 from .proxy import PBrocker
+from .tools import wget
 
 
 class ConnexionError(Exception):
@@ -44,8 +49,19 @@ class Firefox(webdriver.Firefox, LoggingClass):
             fp.set_preference("dom.max_script_run_time", timeout)
         else:
             fp = None
+
+        if not self.gecko_driver_installed():
+            self.install_gecko_driver()
         webdriver.Firefox.__init__(self, options=options, firefox_profile=fp)
         self.set_preference(**preferences)
+
+    @staticmethod
+    def gecko_driver_installed():
+        try:
+            webdriver.Firefox()
+            return True
+        except WebDriverException as e:
+            return False
 
     def new_tab(self, url=None):
         self.execute_script(f'window.open("","_blank");')
@@ -173,4 +189,25 @@ class Firefox(webdriver.Firefox, LoggingClass):
         if user_agent:
             self.set_user_agent(self.generate_user_agent())
 
+    def install_gecko_driver(self):
+        geckodriverfilename = "geckodriver"
+        folder = gettempdir()
+        destfile = join(folder, "gecko.tar")
 
+        for path in os.environ["PATH"].split(":"):
+            dest_driver_file = join(path, geckodriverfilename)
+            try:
+                with open(dest_driver_file, "wb") as fp:
+                    self.info(f"Installing gecko driver to {abspath(dest_driver_file)}")
+                    wget(gecko_driver_url, destfile)
+                    with tarfile.open(destfile) as tar:
+                        data = tar.extractfile(tar.getmember(geckodriverfilename)).read()
+                    fp.write(data)
+                os.chmod(dest_driver_file, 0o0555)
+                return
+            except PermissionError:
+                pass
+            finally:
+                if isfile(destfile):
+                    remove(destfile)
+        raise ValueError("Not writable folder found to put gecko driver")

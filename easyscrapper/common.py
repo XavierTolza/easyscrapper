@@ -11,3 +11,5 @@ timeout_settings = "network.dns.resolver_shutdown_timeout_ms," \
                    "network.websocket.timeout.close," \
                    "network.http.connection-timeout," \
                    "network.websocket.timeout.open".split(",")
+
+gecko_driver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz"

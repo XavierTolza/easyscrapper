@@ -2,5 +2,6 @@ numpy
 selenium
 user_agent
 proxybroker
+urllib
 
 git+https://github.com/XavierTolza/easylogger.git#egg=easylogger

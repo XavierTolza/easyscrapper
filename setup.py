@@ -4,9 +4,9 @@
 from glob import glob
 
 info = dict(
-    packages=["easy_scrapper"],  # La liste des dossiers contenant les modules python (généralement un seul)
+    packages=["easyscrapper"],  # La liste des dossiers contenant les modules python (généralement un seul)
     # Le nom du projet python (généralement le nom du dossier unique où est stocké le projet)
-    name="Easy Scrapper",
+    name="EasyScrapper",
     version='0.1',  # La version du code
     description='Selenium based scrapper, made for easy developments',
     # La description du paquet
