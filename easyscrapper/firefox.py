@@ -1,11 +1,13 @@
 import os
 import re
 import tarfile
+from io import BytesIO
 from os import system, remove
 from os.path import join, isfile, abspath
 from tempfile import gettempdir
 from .common import os as osname
 
+import imageio as imageio
 import numpy as np
 from easylogger import LoggingClass
 from selenium import webdriver
