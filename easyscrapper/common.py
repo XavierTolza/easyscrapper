@@ -1,3 +1,5 @@
+from os import name as osname
+
 timeout_settings = "network.dns.resolver_shutdown_timeout_ms," \
                    "network.ftp.idleConnectionTimeout," \
                    "network.http.connection-retry-timeout," \
@@ -13,3 +15,5 @@ timeout_settings = "network.dns.resolver_shutdown_timeout_ms," \
                    "network.websocket.timeout.open".split(",")
 
 gecko_driver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz"
+
+os = dict(posix="linux", nt="windows")[osname]

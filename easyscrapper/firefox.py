@@ -4,6 +4,7 @@ import tarfile
 from os import system, remove
 from os.path import join, isfile, abspath
 from tempfile import gettempdir
+from .common import os as osname
 
 import numpy as np
 from easylogger import LoggingClass
@@ -194,7 +195,14 @@ class Firefox(webdriver.Firefox, LoggingClass):
         folder = gettempdir()
         destfile = join(folder, "gecko.tar")
 
-        for path in os.environ["PATH"].split(":"):
+        if osname == "linux":
+            paths = os.environ["PATH"].split(":")
+        elif osname == "windows":
+            paths = os.environ["PATH"].split(";")
+        else:
+            raise SystemError("Unsupported OS : %s" % os)
+
+        for path in paths:
             dest_driver_file = join(path, geckodriverfilename)
             try:
                 with open(dest_driver_file, "wb") as fp:
