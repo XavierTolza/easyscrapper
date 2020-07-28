@@ -1,20 +1,19 @@
 import os
 import re
 import tarfile
-from io import BytesIO
 from os import system, remove
 from os.path import join, isfile, abspath
 from tempfile import gettempdir
-from .common import os as osname
 
-import imageio as imageio
 import numpy as np
 from easylogger import LoggingClass
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver import ActionChains
 from selenium.webdriver.firefox.options import Options
 from user_agent import generate_user_agent
 
+from .common import os as osname
 from .common import timeout_settings, gecko_driver_url
 from .proxy import PBrocker
 from .tools import wget
@@ -28,6 +27,19 @@ class ConnexionError(Exception):
         if _err is not None:
             err = _err.groups()[0]
         super(ConnexionError, self).__init__(err)
+
+
+class IframeContext(object):
+    def __init__(self, driver, iframe):
+        self.iframe = iframe
+        self.driver = driver
+
+    def __enter__(self):
+        self.driver.switch_to.frame(self.iframe)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.driver.switch_to.parent_frame()
 
 
 class Firefox(webdriver.Firefox, LoggingClass):
@@ -185,12 +197,19 @@ class Firefox(webdriver.Firefox, LoggingClass):
         res = queue.get(timeout=self.timeout)
         return res
 
+    def click_coordinates(self, element, x, y):
+        ac = ActionChains(self)
+        ac.move_to_element(element).move_by_offset(x, y).click().perform()
+
     def change_identity(self, proxy=True, user_agent=True):
         if proxy:
             proxy = self.generate_proxy()
             self.set_proxy(http=proxy, ssl=proxy)
         if user_agent:
             self.set_user_agent(self.generate_user_agent())
+
+    def get_into_iframe(self, iframe):
+        return IframeContext(self, iframe)
 
     def install_gecko_driver(self):
         geckodriverfilename = "geckodriver"
