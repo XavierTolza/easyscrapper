@@ -4,11 +4,12 @@ import tarfile
 from os import system, remove
 from os.path import join, isfile, abspath
 from tempfile import gettempdir
+from time import time, sleep
 
 import numpy as np
 from easylogger import LoggingClass
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.firefox.options import Options
 from user_agent import generate_user_agent
@@ -234,9 +235,25 @@ class Firefox(webdriver.Firefox, LoggingClass):
                     fp.write(data)
                 os.chmod(dest_driver_file, 0o0555)
                 return
-            except PermissionError:
+            except PermissionError as e:
                 pass
             finally:
                 if isfile(destfile):
                     remove(destfile)
         raise ValueError("Not writable folder found to put gecko driver")
+
+    def css_element_exists(self,css:str):
+        try:
+            self.find_element_by_css_selector(css)
+            return True
+        except NoSuchElementException:
+            return False
+
+    def wait_for_css_element(self, css: str, timeout=10):
+        t0 = time()
+        while (time() - t0) < timeout:
+            if self.css_element_exists(css):
+                return
+            else:
+                sleep(0.1)
+        raise TimeoutError("Could not find css element %s" % css)
