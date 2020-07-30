@@ -47,7 +47,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
     pref_types = {str: "String", int: "Int", bool: "Bool"}
     ip_finder = re.compile(".+[^\d](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,6}).+")
 
-    def __init__(self, headless=False, timeout=10, enable_cache=False, use_proxy_broker=False):
+    def __init__(self, headless=False, timeout=10, enable_cache=False, use_proxy_broker=False, download_pdf=True):
         self.use_proxy_broker = use_proxy_broker
         options = Options()
         options.headless = headless
@@ -59,12 +59,25 @@ class Firefox(webdriver.Firefox, LoggingClass):
         if use_proxy_broker:
             self.broker = PBrocker()
         LoggingClass.__init__(self)
+        fp = None
+
         if headless:
             fp = webdriver.FirefoxProfile()
             fp.set_preference("http.response.timeout", timeout)
             fp.set_preference("dom.max_script_run_time", timeout)
-        else:
-            fp = None
+
+        if download_pdf:
+            if fp is None:
+                fp = webdriver.FirefoxProfile()
+
+            fp.set_preference("browser.download.folderList", 2)
+            fp.set_preference("browser.helperApps.alwaysAsk.force", False)
+            fp.set_preference("browser.download.manager.showWhenStarting", False)
+            fp.set_preference("browser.download.dir", os.getcwd())
+            fp.set_preference("plugin.disable_full_page_plugin_for_types", "application/pdf")
+            fp.set_preference("pdfjs.disabled", True)
+            fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
+
 
         if not self.gecko_driver_installed():
             self.install_gecko_driver()
