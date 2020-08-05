@@ -47,11 +47,13 @@ class Firefox(webdriver.Firefox, LoggingClass):
     pref_types = {str: "String", int: "Int", bool: "Bool"}
     ip_finder = re.compile(".+[^\d](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,6}).+")
 
-    def __init__(self, headless=False, timeout=10, enable_cache=False, use_proxy_broker=False, download_pdf=True):
+    def __init__(self, headless=False, timeout=10, enable_cache=False, use_proxy_broker=False, download_pdf=True,
+                 download_dir=os.getcwd()):
         self.use_proxy_broker = use_proxy_broker
         options = Options()
         options.headless = headless
         self.timeout = timeout
+        self.download_dir = download_dir
         preferences = {i: timeout for i in timeout_settings}
         preferences.update({i: enable_cache for i in "browser.cache.disk.enable,browser.cache.memory."
                                                      "enable,browser.cache.offline.enable," \
@@ -73,11 +75,10 @@ class Firefox(webdriver.Firefox, LoggingClass):
             fp.set_preference("browser.download.folderList", 2)
             fp.set_preference("browser.helperApps.alwaysAsk.force", False)
             fp.set_preference("browser.download.manager.showWhenStarting", False)
-            fp.set_preference("browser.download.dir", os.getcwd())
+            fp.set_preference("browser.download.dir", download_dir)
             fp.set_preference("plugin.disable_full_page_plugin_for_types", "application/pdf")
             fp.set_preference("pdfjs.disabled", True)
             fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
-
 
         if not self.gecko_driver_installed():
             self.install_gecko_driver()
@@ -87,7 +88,11 @@ class Firefox(webdriver.Firefox, LoggingClass):
     @staticmethod
     def gecko_driver_installed():
         try:
-            webdriver.Firefox()
+            options = Options()
+            options.headless = True
+            d = webdriver.Firefox(options=options)
+            d.close()
+            d.quit()
             return True
         except WebDriverException as e:
             return False
@@ -255,7 +260,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
                     remove(destfile)
         raise ValueError("Not writable folder found to put gecko driver")
 
-    def css_element_exists(self,css:str):
+    def css_element_exists(self, css: str):
         try:
             self.find_element_by_css_selector(css)
             return True
