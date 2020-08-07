@@ -48,7 +48,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
     ip_finder = re.compile(".+[^\d](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,6}).+")
 
     def __init__(self, headless=False, timeout=10, enable_cache=False, use_proxy_broker=False, download_pdf=True,
-                 download_dir=os.getcwd()):
+                 download_dir=os.getcwd(), **kwargs):
         self.use_proxy_broker = use_proxy_broker
         options = Options()
         options.headless = headless
@@ -60,7 +60,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
                                                      "network.http.use-cache".split(",")})
         if use_proxy_broker:
             self.broker = PBrocker()
-        LoggingClass.__init__(self)
+        LoggingClass.__init__(self, **kwargs)
         fp = None
 
         if headless:
