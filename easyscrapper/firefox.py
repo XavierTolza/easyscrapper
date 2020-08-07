@@ -80,9 +80,11 @@ class Firefox(webdriver.Firefox, LoggingClass):
             fp.set_preference("pdfjs.disabled", True)
             fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
 
+        self.debug("Testing if gecko driver is installed")
         if not self.gecko_driver_installed():
             self.install_gecko_driver()
         webdriver.Firefox.__init__(self, options=options, firefox_profile=fp)
+        self.debug("Setting preferences")
         self.set_preference(**preferences)
 
     @staticmethod
@@ -194,6 +196,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
         self.set_preference(**{"javascript.enabled": False})
 
     def get(self, url):
+        self.info("Going to %s" % url)
         try:
             super(Firefox, self).get(url)
         except WebDriverException as e:
@@ -231,6 +234,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
         return IframeContext(self, iframe)
 
     def install_gecko_driver(self):
+        self.debug("Asked to install gecko driver")
         geckodriverfilename = "geckodriver"
         folder = gettempdir()
         destfile = join(folder, "gecko.tar")
@@ -268,6 +272,7 @@ class Firefox(webdriver.Firefox, LoggingClass):
             return False
 
     def wait_for_css_element(self, css: str, timeout=10):
+        self.debug("Waiting for CSS component %s with timeout %i" % (css, timeout))
         t0 = time()
         while (time() - t0) < timeout:
             if self.css_element_exists(css):
